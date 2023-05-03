@@ -15,10 +15,10 @@ fn powmod(a: i32, b: i32, p: i32) -> i32 {
 }
 
 fn main() {
-    let p= 23;
-    let alfa= 5;
-    let a= 4;
-    let b= 3;
+    let p = 23;
+    let alfa = 5;
+    let a = 4;
+    let b = 3;
     
     let A = powmod(alfa, a, p);
     let B = powmod(alfa, b, p);
