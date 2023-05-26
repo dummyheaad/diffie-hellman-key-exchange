@@ -54,8 +54,9 @@ kunci publik B. Setelah itu, Bob mengirimkan kunci publik B kepada Alice.
 6. Alice dan Bob sekarang berbagi kunci publik yang sama, yaitu K.
 
 ### Output
-K => kunci publik yang bersifat shared (berbagi bersama) antara Alice dan Bob
-Nilai K dihitung masing-masing oleh Alice dan Bob
+K => kunci publik yang bersifat shared (berbagi bersama) antara Alice dan Bob  
+Nilai K dihitung masing-masing oleh Alice dan Bob  
+Kunci ini tidak boleh dibagikan (kasus Affine cipher)
 1. Alice  
 $K\ =\ B^a\ mod\ p$
 
@@ -78,4 +79,4 @@ $K\ =\ (g^a)^b\ mod\ p$
 $K\ =\ g^{ab}\ mod\ p$
 
 ## Visualisasi
-![DH-Scheme](https://i.stack.imgur.com/IPUgS.png)
+![DH-Scheme](https://www.researchgate.net/profile/Sura-Fahmy-2/publication/349609600/figure/fig1/AS:995430716428288@1614340585363/Block-diagram-of-the-Diffie-Hellman-algorithm.png)
