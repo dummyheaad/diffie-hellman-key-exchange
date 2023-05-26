@@ -78,5 +78,5 @@ $K\ =\ A^b\ mod\ p$
 $K\ =\ (g^a)^b\ mod\ p$  
 $K\ =\ g^{ab}\ mod\ p$
 
-## Visualisasi
-![DH-Scheme](https://www.researchgate.net/profile/Sura-Fahmy-2/publication/349609600/figure/fig1/AS:995430716428288@1614340585363/Block-diagram-of-the-Diffie-Hellman-algorithm.png)
+## Ilustrasi
+![DH-Scheme](/illustration/illustration.png)
