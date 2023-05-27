@@ -14,6 +14,7 @@ pub fn encrypt_to_b64(message: &str, cryp: &affine::AffineCipher) -> String {
         .iter()
         .map(|c| {
             let hex_c = c.to_str_radix(16);
+            println!("{}", hex_c);
             if hex_c.len() == 1 {
                 format!("0{}", hex_c)
             }
