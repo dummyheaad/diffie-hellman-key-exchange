@@ -79,12 +79,3 @@ pub fn inv_mod(a: &BigInt, n: &BigInt) -> Result<BigInt, &'static str> {
 
     Ok(t)
 }
-
-pub fn affine_enc(key: &BigInt, msg: &BigInt, n: &BigInt) -> BigInt {
-    (key % n) * (msg % n) % n
-}
-
-pub fn affine_dec(key: &BigInt, cipher: &BigInt, n: &BigInt) -> BigInt {
-    let inv_key = inv_mod(&key, &n).unwrap();
-    (cipher % n) *(inv_key % n) % n
-}

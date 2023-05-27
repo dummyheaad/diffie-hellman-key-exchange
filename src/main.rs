@@ -1,64 +1,57 @@
-use curv::{BigInt, arithmetic::Converter};
-use base64;
-use crate::utils::{affine_enc, affine_dec};
+use curv::{BigInt, arithmetic::Converter, arithmetic::Zero};
+use base64::{Engine, engine::general_purpose};
+
 mod prime;
 mod utils;
-
+mod affine;
+mod diffie_helman;
 
 fn main() {
+
+    let mut dh_alice = diffie_helman::DiffieHelman::default();
+    let mut dh_bob = diffie_helman::DiffieHelman::default();
+
     // INGAT: BILANGAN PRIMA HARUS LEBIH BESAR DARI NILAI DATA TERBESAR
+    // SETIAP PESAN YANG AKAN DIENKRIPSI HARUS < PRIMA
     let p = BigInt::from(167);
     if prime::is_safe_prime(&p) {
-        let res_g = utils::primitive_root_modulo(&p);
-        let g = match res_g {
-            Ok(val) => val,
-            Err(e) => panic!("Error: {}", e)
+        let g = utils::primitive_root_modulo(&p).unwrap();
+
+        let a = BigInt::from(4);
+        dh_alice.set(&p, &g, &a);
+        dh_alice.set_public_key();
+
+        let b = BigInt::from(3);
+        dh_bob.set(&p, &g, &b);
+        dh_bob.set_public_key();
+
+        let bob_private_key = dh_bob.get_private_key();
+        dh_alice.set_shared_key(&bob_private_key);
+
+        let alice_private_key = dh_alice.get_private_key();
+        dh_bob.set_shared_key(&alice_private_key);
+
+        let shared_key = match dh_alice.get_shared_key() == dh_bob.get_shared_key() {
+            true => dh_alice.get_shared_key(),
+            false => panic!("Wrong calculation")
         };
-
-        let private_a = BigInt::from(4);
-        let private_b = BigInt::from(3);
-
-        let public_a = utils::powmod(&g, &private_a, &p);
-        let public_b = utils::powmod(&g, &private_b, &p);
-
-        let key_a = utils::powmod(&public_b, &private_a, &p);
-        let key_b = utils::powmod(&public_a, &private_b, &p);
-
-        let shared_key = match key_a == key_b {
-            true => key_a,
-            false => panic!("Wrong calculation for shared key...")
-        };
-
-        // if key_a == key_b {
-        //     println!("Shared key = {}", key_a);
-        //     println!("Totient = {}", utils::euler_totient(&p));
-        //     println!("p = {}", p);
-        //     println!("g = {}", g);
-        //     match utils::inv_mod(&BigInt::from(5), &BigInt::from(3)) {
-        //         Ok(result) => println!("{}x = 1 mod {}, x = {}", BigInt::from(5), BigInt::from(3), result),
-        //         Err(err) => println!("Error: {}", err)
-        //     }
-        // }
-        // else {
-        //     println!("Wrong calculation...");
-        // }
 
         // Contoh Enkripsi dan Dekripsi sederhana via Affine Cipher
         println!("=====DEKRIPSI DIFFIE-HELLMAN VIA AFFINE CIPHER=====");
         println!("p = {}", p);
         println!("g = {}", g);
-        println!("Private Key Uka = {}", private_a);
-        println!("Private Key Akane = {}", private_b);
+        println!("Private Key Alice = {}", dh_alice.get_private_key());
+        println!("Private Key Bob = {}", dh_bob.get_private_key());
         println!("Shared Key = {}", shared_key);
-        // let message = BigInt::from(27);
-        // let ciphertext = utils::affine_enc(&shared_key, &message, &p);
-        // println!("Hasil enkripsi: {}", ciphertext);
 
-        // let plaintext = utils::affine_dec(&shared_key, &ciphertext, &p);
-        // println!("Hasil dekripsi: {}", plaintext);
+        let mut affn = affine::AffineCipher::default();
+        affn.set(&shared_key, &BigInt::zero(), &p);
 
         // ENKRIPSI
-        let message = "Selamat ulang tahun yang ke-21, Aysuka Ansari !!!";
+
+        // let message = "Selamat ulang tahun yang ke-21, Aysuka Ansari !!!";
+        let message = "I Love U So Much";
+
         let mut message_vec: Vec<BigInt> = vec![];
         for ch in message.chars() {
             let message_ascii = BigInt::from(ch as u32);
@@ -66,14 +59,10 @@ fn main() {
         }
 
         let mut ciphertext_vec: Vec<BigInt> = vec![];
-
         for m in &message_vec {
-            let c = affine_enc(&shared_key, &m, &p);
+            let c = affn.encrypt(&m);
             ciphertext_vec.push(c);
         }
-
-        // println!("{:?}", message_vec);
-        // println!("{:?}", ciphertext_vec);
 
         let ciphertext_hex: String = ciphertext_vec
         .iter()
@@ -87,22 +76,18 @@ fn main() {
         })
         .collect();
 
-        // println!("{}", ciphertext_hex);
-
-        let encoded = base64::encode(ciphertext_hex);
-        // println!("{}", encoded);
-        let decoded_bytes = base64::decode(encoded.clone()).unwrap();
-        let decoded_string = String::from_utf8(decoded_bytes).unwrap();
-        // println!("{}", decoded_string);
+        let encoded = general_purpose::STANDARD.encode(&ciphertext_hex);
 
         // DEKRIPSI
+        
+        let decoded_bytes = general_purpose::STANDARD.decode(&encoded).unwrap();
+        let decoded_string = String::from_utf8(decoded_bytes).unwrap();
         let ciphertext = decoded_string;
 
         println!("\nSebelum Dekripsi: ");
-        println!("Dari Akane: {}", encoded.clone());
+        println!("Dari Alice: {}", encoded.clone());
 
         let mut decoded_ciphertext: Vec<BigInt> = Vec::new();
-
         for i in (0..ciphertext.len()).step_by(2) {
             if let Ok(hex_str) = &ciphertext[i..i+2].parse::<String>() {
                 if let Ok(num) = BigInt::from_str_radix(hex_str, 16) {
@@ -111,16 +96,11 @@ fn main() {
             }
         }
 
-        // println!("{:?}", decoded_ciphertext);
-
         let mut plaintext_vec: Vec<BigInt> = vec![];
-
         for dc in &decoded_ciphertext {
-            let plain = affine_dec(&shared_key, &dc, &p);
+            let plain = affn.decrypt(&dc);
             plaintext_vec.push(plain);
         }
-
-        // println!("{:?}", plaintext_vec);
 
         let plaintext: String = plaintext_vec
             .iter()
@@ -132,7 +112,7 @@ fn main() {
             .collect();
 
         println!("\nHasil Dekripsi");
-        println!("Dari Akane: {}", plaintext);
+        println!("Dari Alice: {}", plaintext);
     }
     else {
         println!("p must be a safe prime");
