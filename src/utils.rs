@@ -6,8 +6,19 @@ pub fn primitive_root_modulo(n: &BigInt) -> Result<BigInt, &'static str> {
         return Ok(BigInt::from(2));
     }
 
-    let totient: BigInt = euler_totient(&n);
-    let set_factors = prime::prime_set(&prime::prime_factors(&totient));
+    // untuk sembarang nilai n
+    // let totient: BigInt = euler_totient(&n);
+
+    // khusus untuk n prima
+    let totient = n.clone() - BigInt::one();
+
+    // PERLU IMPROVISASI
+    // let set_factors = prime::prime_factors(&totient);
+
+    // HASIL IMPROVISASI
+    // Alasan: n adalah safe prime sehingga selalu memiki 2 faktorisasi prima
+    // yaitu 2 dan (n - 1)/2 [karena (n - 1)/2 juga merupakan prima maka tidak ada lagi faktorisasi prima yang lain]
+    let set_factors = vec![BigInt::from(2), &totient/BigInt::from(2)];
 
     let mut g = BigInt::from(2);
     while g < *n {

@@ -1,5 +1,5 @@
 use curv::{BigInt, arithmetic::Samplable, arithmetic::Zero, arithmetic::One, arithmetic::Integer};
-use curv::arithmetic::BitManipulation;
+use curv::arithmetic::{BitManipulation, BasicOps};
 use crate::utils;
 
 pub fn is_safe_prime(candidate: &BigInt) -> bool {
@@ -126,6 +126,23 @@ pub fn prime_factors(n: &BigInt) -> Vec<BigInt> {
     }
 
     factors
+}
+
+pub fn generate_random_prime(bit_size: u32) -> BigInt {
+    let zero = BigInt::zero();
+    let one = BigInt::one();
+    let two = &one + &one;
+    let min_value = BigInt::from(2).pow(bit_size - 1);
+    let max_value = BigInt::from(2).pow(bit_size);
+
+    let mut random = BigInt::sample_range(&min_value, &max_value);
+    if &random % &two == zero {
+        random = &random + &one;
+    }
+    while !is_safe_prime(&random) {
+        random = &random + &two;
+    }
+    random
 }
 
 #[rustfmt::skip]
