@@ -39,8 +39,6 @@ fn main() {
         };
 
         // Contoh Enkripsi dan Dekripsi sederhana via Affine Cipher
-        // MASALAH: NILAI P GA BISA TERLALU GEDE.
-        // IMPROVISASI: BIKIN AGAR NILAI P NYA BISA GEDE DAN BERHASIL DEKRIPSI PESAN
         println!("=====ENKRIPSI/DEKRIPSI DIFFIE-HELLMAN VIA AFFINE CIPHER=====");
         println!("p = {}", p);
         println!("g = {}", g);
